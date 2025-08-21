@@ -1,0 +1,10 @@
+version: 1.0
+provider:
+  name: openfaas
+  gateway: http://127.0.0.1:8080
+functions:
+  nexmark-q8:
+    lang: python3-http
+    handler: ./nexmark-q8
+    image: dcchico/nexmark-q8:latest
+

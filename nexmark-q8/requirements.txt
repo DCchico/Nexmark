@@ -1,0 +1,15 @@
+# Core dependencies for Nexmark Query 8 - Streaming Implementation
+redis>=4.5.0
+# Standard library modules (built-in):
+# - json
+# - xml.etree.ElementTree
+# - datetime
+# - logging
+# - typing
+# - time
+# - collections
+
+# Optional dependencies for enhanced functionality:
+# requests>=2.25.1
+# pandas>=1.3.0
+# numpy>=1.21.0
