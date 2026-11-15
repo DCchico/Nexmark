@@ -1,5 +1,7 @@
 # Beam Nexmark Q8 on the five-policy object substrate
 
+The five-application entry is https://github.com/DCchico/STateFlow/blob/feature/social-integrated/docs/reproduce-all-applications.md. `prepare_cell.sh` comes from `GRAPHALYTICS_PREPARE` or `$HOME/Graphalytics-STateFlow/scripts/prepare_cell.sh`.
+
 This runbook is the selected workload. The cloned handler in `nexmark-q8/handler.py` is a different program and is not what the campaign runs. See `docs/query-identity.md`.
 
 ## Workload

@@ -112,7 +112,7 @@ def run_stream(run_id: str, rows: list[dict], t0: float, sink: list, lock: threa
 
 
 def worker_hosts() -> list[str]:
-    yaml = Path(os.environ.get("STATEFLOW_REPO", "/users/DCchico/STateFlow")) / "configs" / "stateflow.yaml"
+    yaml = Path(os.environ.get("STATEFLOW_REPO", str(Path.home() / "STateFlow"))) / "configs" / "stateflow.yaml"
     ips = []
     seen = False
     for line in yaml.read_text().splitlines():
@@ -183,7 +183,7 @@ left=$(ctr -n faasedge-fn tasks ls | awk 'NR>1 && $1 ~ /^nexmark_join-/ {print $
 if [ -n "$left" ]; then echo TASKS_REMAIN $left; exit 3; fi
 echo TASKS_CLEAR
 '''
-    yaml = Path(os.environ.get("STATEFLOW_REPO", "/users/DCchico/STateFlow")) / "configs" / "stateflow.yaml"
+    yaml = Path(os.environ.get("STATEFLOW_REPO", str(Path.home() / "STateFlow"))) / "configs" / "stateflow.yaml"
     ips = []
     seen = False
     for line in yaml.read_text().splitlines():
@@ -276,7 +276,7 @@ def main() -> None:
         for policy in policies:
             dest = out / policy
             cleanup()
-            subprocess.check_call(["/users/DCchico/Graphalytics-STateFlow/scripts/prepare_cell.sh", policy, str(dest / "prepare")])
+            subprocess.check_call([os.environ.get("GRAPHALYTICS_PREPARE", str(Path.home() / "Graphalytics-STateFlow/scripts/prepare_cell.sh")), policy, str(dest / "prepare")])
             try:
                 cell(f"probe{policy[:2].lower()}", policy, dest, short)
             finally:
@@ -298,7 +298,7 @@ def main() -> None:
             print("SKIP", run_id)
             continue
         cleanup()
-        subprocess.check_call(["/users/DCchico/Graphalytics-STateFlow/scripts/prepare_cell.sh", policy, str(dest / "prepare")])
+        subprocess.check_call([os.environ.get("GRAPHALYTICS_PREPARE", str(Path.home() / "Graphalytics-STateFlow/scripts/prepare_cell.sh")), policy, str(dest / "prepare")])
         try:
             cell(run_id, policy, dest, trace)
         finally:

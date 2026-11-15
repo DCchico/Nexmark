@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 from collections import Counter
 from pathlib import Path
 
@@ -27,8 +28,8 @@ COLORS = {
     "data-centric": "#e45756",
     "stateflow": "#72b7b2",
 }
-ROOT = Path("/proj/faasedge-PG0/bootstrap-20261114-DCchico-325947")
-CAMPAIGN = ROOT / "nexmark-beam-q8-20261115"
+ROOT = Path(os.environ.get("SHARE_ROOT", "/proj/faasedge-PG0/bootstrap-20261114-DCchico-325947"))
+CAMPAIGN = Path(os.environ.get("NEXMARK_CAMPAIGN", str(ROOT / "nexmark-beam-q8-20261115")))
 OLDER = {
     "BFS apply": ROOT / "figures-20261114/bfs-apply-summary-20261114.json",
     "SocialNet update_home": ROOT / "figures-20261114/social-update-home-summary-20261114.json",
@@ -396,7 +397,7 @@ def write_report(summary: dict, dest: Path) -> None:
 
 def main() -> None:
     summary = summarize()
-    out = Path("/users/DCchico/Nexmark/docs/analysis")
+    out = Path(os.environ.get("NEXMARK_DOCS", str(Path(__file__).resolve().parents[1] / "docs" / "analysis")))
     out.mkdir(parents=True, exist_ok=True)
     (out / "campaign-20261115.json").write_text(json.dumps(summary, indent=2) + "\n")
     (CAMPAIGN / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
