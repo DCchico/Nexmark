@@ -1,0 +1,477 @@
+{
+  "query": "Apache Beam Nexmark Q8 person-seller window join",
+  "operation": "join_update",
+  "timing_schema": "stateful-e2e-v1",
+  "aggregation": "unweighted mean of three repetition means; each repetition has the same measured join count",
+  "percentile": "nearest rank within a repetition; the reported percentile is the mean of the three repetition percentiles",
+  "seed": 20261115,
+  "namespaces": 6,
+  "rate_per_namespace": 5.0,
+  "measure_s": 60,
+  "warmup_s": 10,
+  "window_s": 43200,
+  "policies": [
+    {
+      "id": "rr",
+      "policy": "RR",
+      "label": "Vanilla RR / Redis object-state",
+      "repetitions": [
+        {
+          "run_id": "n0rr",
+          "n": 1807,
+          "wall_s": 69.9953331680008,
+          "e2e_s": 0.008026050269606242,
+          "orchestration_s": 0.005093742465574215,
+          "compute_s": 0.00018818643342950457,
+          "state_s": 0.002744121370602522,
+          "stall_s": 0.0,
+          "driver_queue_s": 8.754066591561831e-07,
+          "http_s": 0.008025174862947085,
+          "publish_bytes": 17812.765910348644,
+          "state_bytes": 17812.765910348644,
+          "p50": 0.0080419699952472,
+          "p95": 0.009894295988488011,
+          "p99": 0.012424936998286285,
+          "access": {
+            "redis-object": 1807
+          },
+          "direct_zero_publish": 0
+        },
+        {
+          "run_id": "n1rr",
+          "n": 1807,
+          "wall_s": 69.99448545499763,
+          "e2e_s": 0.007930716880379484,
+          "orchestration_s": 0.0049855628798721055,
+          "compute_s": 0.00018904698762444054,
+          "state_s": 0.0027561070128829376,
+          "stall_s": 0.0,
+          "driver_queue_s": 9.228373987483728e-07,
+          "http_s": 0.007929794042980736,
+          "publish_bytes": 17812.765910348644,
+          "state_bytes": 17812.765910348644,
+          "p50": 0.007923684999695979,
+          "p95": 0.009649537998484448,
+          "p99": 0.011882850987603888,
+          "access": {
+            "redis-object": 1807
+          },
+          "direct_zero_publish": 0
+        },
+        {
+          "run_id": "n2rr",
+          "n": 1807,
+          "wall_s": 69.99463164700137,
+          "e2e_s": 0.00792604101624061,
+          "orchestration_s": 0.004981920335548579,
+          "compute_s": 0.0001891725668518077,
+          "state_s": 0.002754948113840223,
+          "stall_s": 0.0,
+          "driver_queue_s": 9.100272680473513e-07,
+          "http_s": 0.007925130988972563,
+          "publish_bytes": 17812.765910348644,
+          "state_bytes": 17812.765910348644,
+          "p50": 0.00794879300519824,
+          "p95": 0.009786706999875605,
+          "p99": 0.011438536996138282,
+          "access": {
+            "redis-object": 1807
+          },
+          "direct_zero_publish": 0
+        }
+      ],
+      "mean": {
+        "n": 1807.0,
+        "wall_s": 69.9948167566666,
+        "e2e_s": 0.007960936055408778,
+        "orchestration_s": 0.005020408560331633,
+        "compute_s": 0.00018880199596858427,
+        "state_s": 0.0027517254991085613,
+        "stall_s": 0.0,
+        "driver_queue_s": 9.027571086506357e-07,
+        "http_s": 0.007960033298300128,
+        "publish_bytes": 17812.765910348644,
+        "state_bytes": 17812.765910348644,
+        "p50": 0.007971482666713806,
+        "p95": 0.00977684699561602,
+        "p99": 0.011915441660676152
+      }
+    },
+    {
+      "id": "faast",
+      "policy": "Faast",
+      "label": "Faa$T-style",
+      "repetitions": [
+        {
+          "run_id": "n0faast",
+          "n": 1807,
+          "wall_s": 69.99692622399016,
+          "e2e_s": 0.008771583937999768,
+          "orchestration_s": 0.004985228358415459,
+          "compute_s": 0.00019085202472092193,
+          "state_s": 0.0035955035548633856,
+          "stall_s": 0.0,
+          "driver_queue_s": 8.943105553543297e-07,
+          "http_s": 0.008770689627444412,
+          "publish_bytes": 17812.765910348644,
+          "state_bytes": 17812.765910348644,
+          "p50": 0.008839254995109513,
+          "p95": 0.010732768001616932,
+          "p99": 0.012350264005362988,
+          "access": {
+            "remote": 1516,
+            "shared_memory": 291
+          },
+          "direct_zero_publish": 0
+        },
+        {
+          "run_id": "n1faast",
+          "n": 1807,
+          "wall_s": 69.99593246699078,
+          "e2e_s": 0.008784623384529438,
+          "orchestration_s": 0.005005451755349315,
+          "compute_s": 0.00018996006643796969,
+          "state_s": 0.0035892115627421534,
+          "stall_s": 0.0,
+          "driver_queue_s": 9.135914967494836e-07,
+          "http_s": 0.008783709793032689,
+          "publish_bytes": 17812.765910348644,
+          "state_bytes": 17812.765910348644,
+          "p50": 0.008823126001516357,
+          "p95": 0.010911489996942692,
+          "p99": 0.012828466991777532,
+          "access": {
+            "shared_memory": 295,
+            "remote": 1512
+          },
+          "direct_zero_publish": 0
+        },
+        {
+          "run_id": "n2faast",
+          "n": 1807,
+          "wall_s": 69.99295362399425,
+          "e2e_s": 0.008785526916175252,
+          "orchestration_s": 0.005001089693099355,
+          "compute_s": 0.00019060151664096673,
+          "state_s": 0.003593835706434931,
+          "stall_s": 0.0,
+          "driver_queue_s": 8.932329727440875e-07,
+          "http_s": 0.008784633683202508,
+          "publish_bytes": 17812.765910348644,
+          "state_bytes": 17812.765910348644,
+          "p50": 0.008826365999993868,
+          "p95": 0.010895418003201485,
+          "p99": 0.01278560800710693,
+          "access": {
+            "remote": 1505,
+            "shared_memory": 302
+          },
+          "direct_zero_publish": 0
+        }
+      ],
+      "mean": {
+        "n": 1807.0,
+        "wall_s": 69.9952707716584,
+        "e2e_s": 0.008780578079568153,
+        "orchestration_s": 0.0049972566022880435,
+        "compute_s": 0.0001904712025999528,
+        "state_s": 0.003592850274680157,
+        "stall_s": 0.0,
+        "driver_queue_s": 9.003783416159669e-07,
+        "http_s": 0.008779677701226537,
+        "publish_bytes": 17812.765910348644,
+        "state_bytes": 17812.765910348644,
+        "p50": 0.008829582332206579,
+        "p95": 0.010846558667253703,
+        "p99": 0.012654779668082483
+      }
+    },
+    {
+      "id": "cloudburst",
+      "policy": "Cloudburst",
+      "label": "Cloudburst-style",
+      "repetitions": [
+        {
+          "run_id": "n0cloudburst",
+          "n": 1807,
+          "wall_s": 69.99480928901176,
+          "e2e_s": 0.00720442054845036,
+          "orchestration_s": 0.0048872960314753,
+          "compute_s": 0.00016842712871283221,
+          "state_s": 0.002148697388262228,
+          "stall_s": 0.0,
+          "driver_queue_s": 9.174306898088698e-07,
+          "http_s": 0.007203503117760551,
+          "publish_bytes": 17812.765910348644,
+          "state_bytes": 17812.765910348644,
+          "p50": 0.0072404190141242,
+          "p95": 0.008743899001274258,
+          "p99": 0.010885404000873677,
+          "access": {
+            "shared_memory": 1807
+          },
+          "direct_zero_publish": 0
+        },
+        {
+          "run_id": "n1cloudburst",
+          "n": 1807,
+          "wall_s": 69.99429688000237,
+          "e2e_s": 0.0071863214497571845,
+          "orchestration_s": 0.0048708614986302905,
+          "compute_s": 0.00016870261643169005,
+          "state_s": 0.0021467573346952043,
+          "stall_s": 0.0,
+          "driver_queue_s": 9.150243007104305e-07,
+          "http_s": 0.007185406425456474,
+          "publish_bytes": 17812.765910348644,
+          "state_bytes": 17812.765910348644,
+          "p50": 0.007231898998725228,
+          "p95": 0.00865158399392385,
+          "p99": 0.010301105008693412,
+          "access": {
+            "shared_memory": 1807
+          },
+          "direct_zero_publish": 0
+        },
+        {
+          "run_id": "n2cloudburst",
+          "n": 1807,
+          "wall_s": 69.99438566500612,
+          "e2e_s": 0.007176089498458464,
+          "orchestration_s": 0.004863496676979532,
+          "compute_s": 0.000168441892649546,
+          "state_s": 0.0021441509288293863,
+          "stall_s": 0.0,
+          "driver_queue_s": 9.239166725053765e-07,
+          "http_s": 0.007175165581785959,
+          "publish_bytes": 17812.765910348644,
+          "state_bytes": 17812.765910348644,
+          "p50": 0.00722875700739678,
+          "p95": 0.008698343008290976,
+          "p99": 0.010322079004254192,
+          "access": {
+            "shared_memory": 1807
+          },
+          "direct_zero_publish": 0
+        }
+      ],
+      "mean": {
+        "n": 1807.0,
+        "wall_s": 69.99449727800675,
+        "e2e_s": 0.007188943832222003,
+        "orchestration_s": 0.004873884735695041,
+        "compute_s": 0.00016852387926468942,
+        "state_s": 0.0021465352172622726,
+        "stall_s": 0.0,
+        "driver_queue_s": 9.18790554341559e-07,
+        "http_s": 0.0071880250416676604,
+        "publish_bytes": 17812.765910348644,
+        "state_bytes": 17812.765910348644,
+        "p50": 0.007233691673415403,
+        "p95": 0.008697942001163028,
+        "p99": 0.01050286267127376
+      }
+    },
+    {
+      "id": "datacentric",
+      "policy": "Data-centric",
+      "label": "Pheromone-style",
+      "repetitions": [
+        {
+          "run_id": "n0datacentric",
+          "n": 1807,
+          "wall_s": 69.99468221999996,
+          "e2e_s": 0.007308581809037946,
+          "orchestration_s": 0.00498157532756467,
+          "compute_s": 0.0001694005917253691,
+          "state_s": 0.0021576058897479064,
+          "stall_s": 0.0,
+          "driver_queue_s": 9.188942243223963e-07,
+          "http_s": 0.007307662914813624,
+          "publish_bytes": 17812.765910348644,
+          "state_bytes": 17812.765910348644,
+          "p50": 0.007361886993749067,
+          "p95": 0.00882070799707435,
+          "p99": 0.010778500989545137,
+          "access": {
+            "shared_memory": 1807
+          },
+          "direct_zero_publish": 0
+        },
+        {
+          "run_id": "n1datacentric",
+          "n": 1807,
+          "wall_s": 69.9938061110006,
+          "e2e_s": 0.007294421648021296,
+          "orchestration_s": 0.004975213211914125,
+          "compute_s": 0.00016884580545754115,
+          "state_s": 0.0021503626306496296,
+          "stall_s": 0.0,
+          "driver_queue_s": 8.962556076693227e-07,
+          "http_s": 0.007293525392413626,
+          "publish_bytes": 17812.765910348644,
+          "state_bytes": 17812.765910348644,
+          "p50": 0.007330649008508772,
+          "p95": 0.008766372004174627,
+          "p99": 0.010483087011380121,
+          "access": {
+            "shared_memory": 1807
+          },
+          "direct_zero_publish": 0
+        },
+        {
+          "run_id": "n2datacentric",
+          "n": 1807,
+          "wall_s": 69.99424925500352,
+          "e2e_s": 0.0073169006702203335,
+          "orchestration_s": 0.004998509915184869,
+          "compute_s": 0.00016870704618125162,
+          "state_s": 0.002149683708854212,
+          "stall_s": 0.0,
+          "driver_queue_s": 9.289986973728389e-07,
+          "http_s": 0.007315971671522961,
+          "publish_bytes": 17812.765910348644,
+          "state_bytes": 17812.765910348644,
+          "p50": 0.007359242008533329,
+          "p95": 0.008897054998669773,
+          "p99": 0.010460450997925363,
+          "access": {
+            "shared_memory": 1807
+          },
+          "direct_zero_publish": 0
+        }
+      ],
+      "mean": {
+        "n": 1807.0,
+        "wall_s": 69.99424586200136,
+        "e2e_s": 0.007306634709093191,
+        "orchestration_s": 0.004985099484887888,
+        "compute_s": 0.00016898448112138728,
+        "state_s": 0.0021525507430839165,
+        "stall_s": 0.0,
+        "driver_queue_s": 9.147161764548526e-07,
+        "http_s": 0.007305719992916737,
+        "publish_bytes": 17812.765910348644,
+        "state_bytes": 17812.765910348644,
+        "p50": 0.0073505926702637225,
+        "p95": 0.008828044999972917,
+        "p99": 0.010574012999616874
+      }
+    },
+    {
+      "id": "stateflow",
+      "policy": "Stateflow",
+      "label": "STateFlow",
+      "repetitions": [
+        {
+          "run_id": "n0stateflow",
+          "n": 1807,
+          "wall_s": 69.99332743600826,
+          "e2e_s": 0.006838348725166143,
+          "orchestration_s": 0.005619434834776578,
+          "compute_s": 0.00016717556860640915,
+          "state_s": 0.0010517383217831557,
+          "stall_s": 0.0,
+          "driver_queue_s": 9.166545984007966e-07,
+          "http_s": 0.006837432070567742,
+          "publish_bytes": 76.01383508577753,
+          "state_bytes": 76.01383508577753,
+          "p50": 0.006667109002592042,
+          "p95": 0.008234309003455564,
+          "p99": 0.010075659010908566,
+          "access": {
+            "direct": 1801,
+            "shared_memory": 6
+          },
+          "direct_zero_publish": 1801
+        },
+        {
+          "run_id": "n1stateflow",
+          "n": 1807,
+          "wall_s": 69.99300816300092,
+          "e2e_s": 0.00685563955770765,
+          "orchestration_s": 0.0056327521936544315,
+          "compute_s": 0.00016841085586250014,
+          "state_s": 0.0010544765081907188,
+          "stall_s": 0.0,
+          "driver_queue_s": 9.287104776462074e-07,
+          "http_s": 0.006854710847230004,
+          "publish_bytes": 73.66408411732152,
+          "state_bytes": 73.66408411732152,
+          "p50": 0.006688059002044611,
+          "p95": 0.008395733995712362,
+          "p99": 0.010769385000457987,
+          "access": {
+            "direct": 1801,
+            "shared_memory": 6
+          },
+          "direct_zero_publish": 1801
+        },
+        {
+          "run_id": "n2stateflow",
+          "n": 1807,
+          "wall_s": 69.99354656400101,
+          "e2e_s": 0.006871436659134455,
+          "orchestration_s": 0.00564917421887463,
+          "compute_s": 0.00016739174001296136,
+          "state_s": 0.0010548707002468636,
+          "stall_s": 0.0,
+          "driver_queue_s": 9.213714402578214e-07,
+          "http_s": 0.006870515287694197,
+          "publish_bytes": 73.71499723298284,
+          "state_bytes": 73.71499723298284,
+          "p50": 0.0066765969968400896,
+          "p95": 0.008612107005319558,
+          "p99": 0.010334392994991504,
+          "access": {
+            "direct": 1801,
+            "shared_memory": 6
+          },
+          "direct_zero_publish": 1801
+        }
+      ],
+      "mean": {
+        "n": 1807.0,
+        "wall_s": 69.99329405433673,
+        "e2e_s": 0.006855141647336083,
+        "orchestration_s": 0.005633787082435213,
+        "compute_s": 0.00016765938816062356,
+        "state_s": 0.001053695176740246,
+        "stall_s": 0.0,
+        "driver_queue_s": 9.222455054349418e-07,
+        "http_s": 0.006854219401830647,
+        "publish_bytes": 74.46430547869397,
+        "state_bytes": 74.46430547869397,
+        "p50": 0.006677255000492248,
+        "p95": 0.008414050001495829,
+        "p99": 0.010393145668786019
+      }
+    }
+  ],
+  "resources": {
+    "present": true,
+    "cpu_max": [
+      "100000 100000"
+    ],
+    "cpuset_cpus": [
+      "1"
+    ],
+    "cpuset_partition": [
+      "member"
+    ],
+    "memory_max": [
+      "1073741824"
+    ],
+    "memory_current_max": 24547328,
+    "memory_current_min": 20873216,
+    "samples": 216
+  },
+  "attempt_ledger": [
+    {
+      "directory": "nexmark-beam-q8-20261115-attempt1-stateflow-500",
+      "image": "docker.io/dcchico/nexmark-q8:beam-q8-metrics-20261115",
+      "kept": false,
+      "reason": "Stateflow returned 409/500 after a direct update left shared memory stale. Four earlier cells on that image were not reused."
+    }
+  ]
+}
