@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from nexmark_join.timing import close_operation
-from nexmark_join.trace import generate
+from nexmark_join.trace import generate, generate_load
 from nexmark_join.window import apply_event, empty_state
 
 FUNCTION = "nexmark_join"
@@ -37,8 +37,14 @@ def oracle(trace: dict) -> dict:
 def post(path: str, body: dict, headers: dict | None = None) -> dict:
     raw = json.dumps(body).encode()
     request = urllib.request.Request(ORCH + path, data=raw, headers={"Content-Type": "application/json", **(headers or {})}, method="POST")
-    with urllib.request.urlopen(request, timeout=120) as response:
-        return json.loads(response.read())
+    try:
+        with urllib.request.urlopen(request, timeout=120) as response:
+            return json.loads(response.read())
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode(errors="replace")[:300]
+        return {"ok": False, "error": f"HTTP {exc.code}", "detail": detail, "http_status": exc.code}
+    except (urllib.error.URLError, TimeoutError, ConnectionError) as exc:
+        return {"ok": False, "error": type(exc).__name__, "detail": str(exc)[:300]}
 
 
 def register(run_id: str, redis_addr: str, backend: str) -> None:
@@ -88,9 +94,9 @@ def invoke(run_id: str, namespace: int, sequence: int, body: dict) -> dict:
 
 def run_stream(run_id: str, rows: list[dict], t0: float, sink: list, lock: threading.Lock) -> None:
     for row in rows:
-        while time.perf_counter() < t0 + row["scheduled_s"]:
+        release = t0 + row["scheduled_s"]
+        while time.perf_counter() < release:
             time.sleep(0.001)
-        release = time.perf_counter()
         dispatch = time.perf_counter()
         response = invoke(run_id, row["namespace"], row["seq"], {
             "namespace": f"nx{run_id}s{row['namespace']}",
@@ -243,18 +249,44 @@ def cell(run_id: str, policy: str, dest: Path, trace: dict) -> dict:
         if row.get("timing_complete") is not True
         or abs(row["e2e_s"] - (row["orchestration_s"] + row["compute_s"] + row["state_s"] + row["stall_s"])) > 1e-4
     ]
+    slim = []
+    for row in measured:
+        slim.append({
+            "namespace_index": row.get("namespace_index"),
+            "seq": row.get("seq"),
+            "ok": row.get("ok"),
+            "access": row.get("access"),
+            "publish_bytes": row.get("publish_bytes"),
+            "state_bytes": row.get("state_bytes"),
+            "persons": row.get("persons"),
+            "auctions": row.get("auctions"),
+            "matches": len(row.get("matches") or []),
+            "e2e_s": row.get("e2e_s"),
+            "http_s": row.get("http_s"),
+            "driver_queue_s": row.get("driver_queue_s"),
+            "orchestration_s": row.get("orchestration_s"),
+            "handler_s": row.get("handler_s"),
+            "compute_s": row.get("compute_s"),
+            "state_s": row.get("state_s"),
+            "stall_s": row.get("stall_s"),
+            "timing_complete": row.get("timing_complete"),
+            "scheduled_s": row.get("scheduled_s"),
+            "error": row.get("error"),
+        })
     evidence = {
         "run_id": run_id,
         "policy": policy,
         "backend": backend,
         "query": "Beam Nexmark Q8 person-seller window join",
+        "wall_rate_per_namespace": trace.get("rate_per_namespace"),
+        "semantic_rate_per_namespace": trace.get("semantic_rate_per_namespace"),
         "complete": not mismatches and not timing_bad and len(measured) == len([row for row in trace["rows"] if not row["warmup"]]),
         "mismatches": mismatches[:8],
         "mismatch_count": len(mismatches),
         "timing_bad": len(timing_bad),
         "measured": len(measured),
         "wall_s": wall,
-        "records": measured,
+        "records": slim,
     }
     dest.mkdir(parents=True, exist_ok=True)
     (dest / "result.json").write_text(json.dumps(evidence) + "\n")
@@ -271,6 +303,43 @@ def main() -> None:
     trace = generate()
     (out / "trace.json").write_text(json.dumps({"seed": trace["seed"], "rows": len(trace["rows"]), "measured": sum(1 for row in trace["rows"] if not row["warmup"])}) + "\n")
     policies = ["RR", "Faast", "Cloudburst", "Data-centric", "Stateflow"]
+    slug = {"RR": "rr", "Faast": "faast", "Cloudburst": "cloudburst", "Data-centric": "datacentric", "Stateflow": "stateflow"}
+    if mode == "rates":
+        wall = float(sys.argv[3])
+        measure_s = float(os.environ.get("NEXMARK_MEASURE_S", "60"))
+        warmup_s = float(os.environ.get("NEXMARK_WARMUP_S", "10"))
+        trace = generate_load(wall_rate=wall, semantic_rate=5.0, warmup_s=warmup_s, measure_s=measure_s)
+        (out / "trace.json").write_text(json.dumps({
+            "seed": trace["seed"],
+            "wall_rate": wall,
+            "semantic_rate": 5.0,
+            "rows": len(trace["rows"]),
+            "measured": sum(1 for row in trace["rows"] if not row["warmup"]),
+            "event_span_s": max(row["event_s"] for row in trace["rows"]),
+        }) + "\n")
+        order = []
+        for rep in range(3):
+            rotated = policies[rep:] + policies[:rep]
+            for policy in rotated:
+                order.append((rep, policy))
+        for rep, policy in order:
+            run_id = f"w{int(wall)}r{rep}{slug[policy][:2]}"
+            dest = out / f"r{rep}" / slug[policy]
+            if (dest / "result.json").exists() and json.loads((dest / "result.json").read_text()).get("complete"):
+                print("SKIP", run_id, flush=True)
+                continue
+            cleanup()
+            subprocess.check_call([os.environ.get("GRAPHALYTICS_PREPARE", str(Path.home() / "Graphalytics-STateFlow/scripts/prepare_cell.sh")), policy, str(dest / "prepare")])
+            try:
+                cell(run_id, policy, dest, trace)
+            except SystemExit as exc:
+                print("CELL_FAIL", run_id, exc, flush=True)
+                if os.environ.get("NEXMARK_KEEP_GOING") != "1":
+                    raise
+            finally:
+                cleanup()
+        print("RATES_DONE", wall, flush=True)
+        return
     if mode == "probe":
         short = generate(measure_s=5.0, warmup_s=1.0)
         for policy in policies:
@@ -290,7 +359,6 @@ def main() -> None:
         rotated = policies[rep:] + policies[:rep]
         for policy in rotated:
             order.append((rep, policy))
-    slug = {"RR": "rr", "Faast": "faast", "Cloudburst": "cloudburst", "Data-centric": "datacentric", "Stateflow": "stateflow"}
     for rep, policy in order:
         run_id = f"n{rep}{slug[policy]}"
         dest = out / f"r{rep}" / slug[policy]
