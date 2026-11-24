@@ -123,7 +123,7 @@ def worker_hosts() -> list[str]:
             ips.append(line.split(":", 1)[1].strip())
         elif seen and line.strip() and not line.strip().startswith("port:"):
             break
-    return [subprocess.check_output(["getent", "hosts", ip], text=True).split()[1] for ip in ips]
+    return ips
 
 
 def wait_ready() -> None:
@@ -195,8 +195,7 @@ echo TASKS_CLEAR
         elif seen and line.strip() and not line.strip().startswith("port:"):
             break
     for ip in ips:
-        host = subprocess.check_output(["getent", "hosts", ip], text=True).split()[1]
-        subprocess.check_call(["sudo", "ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10", f"root@{host}", remote])
+        subprocess.check_call(["sudo", "ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10", f"root@{ip}", remote])
 
 
 def cell(run_id: str, policy: str, dest: Path, trace: dict) -> dict:
