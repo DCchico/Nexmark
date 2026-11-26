@@ -288,7 +288,11 @@ def main() -> None:
     out.mkdir(parents=True, exist_ok=True)
     trace = generate()
     (out / "trace.json").write_text(json.dumps({"seed": trace["seed"], "rows": len(trace["rows"]), "measured": sum(1 for row in trace["rows"] if not row["warmup"])}) + "\n")
-    policies = ["RR", "Faast", "Cloudburst", "Data-centric", "Stateflow"]
+    known = ["RR", "Faast", "Cloudburst", "Data-centric", "Stateflow"]
+    policies = sys.argv[3:] or known
+    unknown = [item for item in policies if item not in known]
+    if unknown:
+        raise SystemExit(f"unknown policies {unknown}")
     if mode == "probe":
         short = generate(measure_s=5.0, warmup_s=1.0)
         for policy in policies:
