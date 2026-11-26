@@ -24,6 +24,19 @@ IMAGE = os.environ.get("NEXMARK_IMAGE", "docker.io/dcchico/nexmark-q8:beam-q8-co
 ORCH = os.environ.get("ORCHESTRATOR", "http://127.0.0.1:8088")
 
 
+def ssh_to(host: str, remote: str) -> None:
+    command = ["sudo", "ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10", "-o", "IdentitiesOnly=yes", "-o", "StrictHostKeyChecking=yes"]
+    key = os.environ.get("EXPERIMENT_SSH_KEY", "")
+    known = os.environ.get("EXPERIMENT_KNOWN_HOSTS", "")
+    if key:
+        command.extend(["-i", key])
+    if known:
+        command.extend(["-o", f"UserKnownHostsFile={known}"])
+    command.append(f"root@{host}")
+    command.append(remote)
+    subprocess.check_call(command)
+
+
 def oracle(trace: dict) -> dict:
     states = [empty_state() for _ in range(trace["namespaces"])]
     expected = {}
@@ -131,7 +144,13 @@ def wait_ready() -> None:
     while time.time() < deadline:
         count = 0
         for host in worker_hosts():
-            out = subprocess.check_output(["sudo", "ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=8", f"root@{host}", "ctr -n faasedge-fn tasks ls"], text=True)
+            command = ["sudo", "ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=8", "-o", "IdentitiesOnly=yes", "-o", "StrictHostKeyChecking=yes"]
+            if os.environ.get("EXPERIMENT_SSH_KEY"):
+                command.extend(["-i", os.environ["EXPERIMENT_SSH_KEY"]])
+            if os.environ.get("EXPERIMENT_KNOWN_HOSTS"):
+                command.extend(["-o", f"UserKnownHostsFile={os.environ['EXPERIMENT_KNOWN_HOSTS']}"])
+            command.extend([f"root@{host}", "ctr -n faasedge-fn tasks ls"])
+            out = subprocess.check_output(command, text=True)
             count += sum(1 for line in out.splitlines() if line.startswith("nexmark_join-"))
         if count >= 6:
             print("REPLICAS", count, flush=True)
@@ -195,7 +214,7 @@ echo TASKS_CLEAR
         elif seen and line.strip() and not line.strip().startswith("port:"):
             break
     for ip in ips:
-        subprocess.check_call(["sudo", "ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10", f"root@{ip}", remote])
+        ssh_to(ip, remote)
 
 
 def cell(run_id: str, policy: str, dest: Path, trace: dict) -> dict:
