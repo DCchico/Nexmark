@@ -9,15 +9,12 @@ import subprocess
 import sys
 import threading
 import time
-import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+SCRIPTS = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
-
-from nexmark_join.timing import close_operation
-from nexmark_join.trace import generate
-from nexmark_join.window import apply_event, empty_state
+sys.path.insert(0, str(SCRIPTS))
 
 FUNCTION = "nexmark_join"
 IMAGE = os.environ.get("NEXMARK_IMAGE", "docker.io/dcchico/nexmark-q8:beam-q8-coherent-20261115")
@@ -38,6 +35,7 @@ def ssh_to(host: str, remote: str) -> None:
 
 
 def oracle(trace: dict) -> dict:
+    from nexmark_join.window import apply_event, empty_state
     states = [empty_state() for _ in range(trace["namespaces"])]
     expected = {}
     for row in trace["rows"]:
@@ -48,6 +46,7 @@ def oracle(trace: dict) -> dict:
 
 
 def post(path: str, body: dict, headers: dict | None = None) -> dict:
+    import urllib.request
     raw = json.dumps(body).encode()
     request = urllib.request.Request(ORCH + path, data=raw, headers={"Content-Type": "application/json", **(headers or {})}, method="POST")
     with urllib.request.urlopen(request, timeout=120) as response:
@@ -100,6 +99,7 @@ def invoke(run_id: str, namespace: int, sequence: int, body: dict) -> dict:
 
 
 def run_stream(run_id: str, rows: list[dict], t0: float, sink: list, lock: threading.Lock) -> None:
+    from nexmark_join.timing import close_operation
     for row in rows:
         while time.perf_counter() < t0 + row["scheduled_s"]:
             time.sleep(0.001)
@@ -160,6 +160,7 @@ def wait_ready() -> None:
 
 
 def cleanup() -> None:
+    import urllib.request
     try:
         post_delete = urllib.request.Request(ORCH + "/delete", data=json.dumps({"functionName": FUNCTION}).encode(), headers={"Content-Type": "application/json"}, method="DELETE")
         urllib.request.urlopen(post_delete, timeout=60).read()
@@ -282,14 +283,38 @@ def cell(run_id: str, policy: str, dest: Path, trace: dict) -> dict:
     return evidence
 
 
-def main() -> None:
-    mode = sys.argv[1]
-    out = Path(sys.argv[2])
+def prepare_one(policy: str, dest: Path) -> None:
+    dest.mkdir(parents=True, exist_ok=True)
+    subprocess.check_call([os.environ.get("GRAPHALYTICS_PREPARE", str(Path.home() / "Graphalytics-STateFlow/scripts/prepare_cell.sh")), policy, str(dest)])
+
+
+def live_cell(plan: dict, trace: dict) -> dict:
+    os.environ["REDIS_ADDR"] = plan["redis"]
+    dest = Path(plan["output"])
+    prepare_one(plan["policy"], dest / "prepare")
+    try:
+        return cell(plan["run_id"], plan["policy"], dest, trace)
+    finally:
+        cleanup()
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = list(sys.argv[1:] if argv is None else argv)
+    if not args or args[0] in {"-h", "--help", "cell"} or args[0].startswith("-"):
+        from nexmark_join.trace import generate
+        from one_cell import dispatch
+        return dispatch(args, generate=generate, executor=live_cell)
+    if len(args) < 2:
+        print("probe and campaign need an output directory")
+        return 2
+    mode = args[0]
+    out = Path(args[1])
+    from nexmark_join.trace import generate
     out.mkdir(parents=True, exist_ok=True)
     trace = generate()
     (out / "trace.json").write_text(json.dumps({"seed": trace["seed"], "rows": len(trace["rows"]), "measured": sum(1 for row in trace["rows"] if not row["warmup"])}) + "\n")
     known = ["RR", "Faast", "Cloudburst", "Data-centric", "Stateflow"]
-    policies = sys.argv[3:] or known
+    policies = args[2:] or known
     unknown = [item for item in policies if item not in known]
     if unknown:
         raise SystemExit(f"unknown policies {unknown}")
@@ -304,7 +329,7 @@ def main() -> None:
             finally:
                 cleanup()
         print("PROBE_DONE")
-        return
+        return 0
     if mode != "campaign":
         raise SystemExit("mode must be probe or campaign")
     order = []
@@ -326,7 +351,8 @@ def main() -> None:
         finally:
             cleanup()
     print("NEXMARK_CAMPAIGN_DONE")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
